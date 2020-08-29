@@ -28,7 +28,7 @@ pip install -r requirements.txt
 百度云下载的pytorch模型放入models/mega-bert-tok
 
 
-#### 如果需要自己转换，先下载https://github.com/imcaspar/gpt2-ml 的tensorflow模型，放入 models/mega-bert-tok-tf 目录， 确保models/mega-bert-tok-tf 目录包含文件model.ckpt-100000.index, model.ckpt-100000.meta, model.ckpt-100000.data-00000-of-00001，及mega.json，models/mega-bert-tok 目录包含vocab.txt，参考本代码库models/ 目录，运行:
+#### 如果需要自己转换Pytorch模型，先下载https://github.com/imcaspar/gpt2-ml 的tensorflow模型，放入 models/mega-bert-tok-tf 目录， 确保models/mega-bert-tok-tf 目录包含文件model.ckpt-100000.index, model.ckpt-100000.meta, model.ckpt-100000.data-00000-of-00001，及mega.json，models/mega-bert-tok 目录包含vocab.txt，参考本代码库models/ 目录，运行:
 
 `
 python convert.py
