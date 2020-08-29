@@ -3,7 +3,7 @@
 
 gpt2-ml的pytorch版本预训练模型下载及转换和运用。
 
-目前转换好的只有15G语料和BertTokenizer(21128 tokens)的预训练模型，可自行用以下方法转换gpt2-ml的30G语料版本。
+目前转换好的只有15G语料和BertTokenizer(21128 tokens)的预训练模型，可自行用以下方法转换gpt2-ml的30G语料版本，需修改目录配置。
 
 #### 运行环境：
 
@@ -28,11 +28,12 @@ pip install -r requirements.txt
 百度云下载的pytorch模型放入models/mega-bert-tok
 
 
-#### 如果需要自己转换，先下载https://github.com/imcaspar/gpt2-ml 的tensorflow模型，放入 models/mega-bert-tok-tf 目录，运行:
+#### 如果需要自己转换，先下载https://github.com/imcaspar/gpt2-ml 的tensorflow模型，放入 models/mega-bert-tok-tf 目录， 确保models/mega-bert-tok-tf 目录包含文件model.ckpt-100000.index, model.ckpt-100000.meta, model.ckpt-100000.data-00000-of-00001，及云盘下载的mega.json，models/mega-bert-tok 目录包含云盘下载的vocab.txt，运行:
+
 `
 python convert.py
 `   
-生成的pytorch模型在models/mega-bert-tok目录
+生成的pytorch模型在models/mega-bert-tok 目录
 
 
 #### 生成文字:   
