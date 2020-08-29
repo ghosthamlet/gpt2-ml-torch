@@ -8,9 +8,17 @@ from transformers import GPT2LMHeadModel, BertTokenizer, pipeline
 
 
 def generate(prompt, model_path, n_seq, max_len, no_gpu=False, **kwargs):
+    model, tokenizer, info = build_model(model_path)
+    return build_output(model, tokenizer, prompt, n_seq, max_len, no_gpu, **kwargs)
+
+
+def build_model(model_path):
     model, info = GPT2LMHeadModel.from_pretrained(model_path, output_loading_info=True)
     tokenizer = BertTokenizer.from_pretrained(model_path) 
+    return model, tokenizer, info
 
+
+def build_output(model, tokenizer, prompt, n_seq, max_len, no_gpu, **kwargs):
     gpu = -1 if no_gpu else 0
     nlp = pipeline('text-generation', 
             model=model, tokenizer=tokenizer, device=gpu)
