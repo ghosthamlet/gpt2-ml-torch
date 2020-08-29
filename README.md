@@ -1,21 +1,24 @@
 
 ## Pytorch version for https://github.com/imcaspar/gpt2-ml
 
-语料15G和BertTokenizer(21128 tokens)的模型pytorch版本下载及Transformers类库转换方法
+语料15G和BertTokenizer(21128 tokens)的模型pytorch版本下载及Transformers类库转换方法。
 
-#### 在Ubuntu 16.10，Python 3.6.10，Transformers 2.11.0，Pytorch 1.4.0和Tensorflow 1.14.0环境测试通过，其他环境未测试，如果有需要，大家自己稍作修改modeling_gpt2.py应该就能运行
+#### 运行环境：
 
-模型太大已用7z格式压缩，并分成多个文件，下载前先留意一下是否支持或已安装7z解压软件
-模型下载百度云盘链接: https://pan.baidu.com/s/1Xe3MGA-ELiT1rsrx_HGaHg 提取码: k6b3
+在Ubuntu 16.10，Python 3.6.10，Transformers 2.11.0，Pytorch 1.4.0和Tensorflow 1.14.0环境测试通过，其他环境未测试，如果有需要，大家自己稍作修改modeling_gpt2.py应该就能运行。
 
+#### 模型下载：
+模型太大已用7z格式压缩，并分成多个文件，下载前先留意一下是否支持或已安装7z解压软件，
+模型下载百度云盘链接: https://pan.baidu.com/s/1Xe3MGA-ELiT1rsrx_HGaHg 提取码: k6b3。
 
 #### 安装：
+
 `
 git clone https://github.com/ghosthamlet/gpt2-ml-torch.git
-
 `
 
 如果之前没有安装Transformers 2.11.0，Pytorch 1.4.0和Tensorflow 1.14.0:
+
 `
 pip install -r requirements.txt
 `
