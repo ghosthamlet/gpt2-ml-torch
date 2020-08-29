@@ -3,7 +3,7 @@
 
 gpt2-ml的pytorch版本预训练模型下载及转换和运用。
 
-目前转换好的只有15G语料和BertTokenizer(21128 tokens)的预训练模型，可自行用以下方法转换gpt2-ml的30G语料版本，需要修改convert.py中目录配置。
+目前转换好的只有15G语料和BertTokenizer(21128 tokens)的预训练模型，可自行用以下方法转换gpt2-ml的30G语料版本。
 
 #### 运行环境：
 
@@ -25,10 +25,10 @@ git clone https://github.com/ghosthamlet/gpt2-ml-torch.git
 pip install -r requirements.txt
 `
 
-百度云下载的模型放入models/mega-bert-tok
+百度云下载的pytorch模型放入models/mega-bert-tok
 
 
-#### 如果需要自己转换，先下载https://github.com/imcaspar/gpt2-ml的tensorflow模型，放入 models/mega-bert-tok-tf 目录，运行:
+#### 如果需要自己转换，先下载https://github.com/imcaspar/gpt2-ml 的tensorflow模型，放入 models/mega-bert-tok-tf 目录，运行:
 `
 python convert.py
 `   
@@ -62,9 +62,11 @@ python generate.py --prompt "刘梅和李丽是好朋友，她们正在讨论吃
 
 #### 调用：
 
+from config import MODEL_PATH
+
 from generate import generate
 
-print(generate('中国人', 1, 100))
+print(generate('中国人', MODEL_PATH, 1, 100))
 
 > [{'generated_text': '中国人 对 所 有 文 化 都 喜 欢 分 个 好 恶 高 下 ： 如 果 中 国 人 很 喜 欢 韩 流 ， 那 韩 娱 的 受 众 肯 定 不 会 特 别 喜 欢 这 种 类 型 的 韩 国 综 艺 。 中 国 人 很 喜 欢 美 剧 ， 美 剧 和 韩 剧 的 受 众 都 不 会 特 别 喜 欢 这 种 类 型 的 美 剧 。 中 国 人 看 日 本 电 影 对 美 妆 都 不 懂 ，'}]
 
