@@ -3,15 +3,16 @@
 
 语料15G和BertTokenizer(21128 tokens)的模型pytorch版本下载及Transformers类库转换方法
 
-### 在Ubuntu 16.10，Python 3.6.10，Transformers 2.11.0，Pytorch 1.4.0和Tensorflow 1.14.0环境测试通过，其他环境未测试，如果有需要，大家自己稍作修改modeling_gpt2.py应该就能运行
+#### 在Ubuntu 16.10，Python 3.6.10，Transformers 2.11.0，Pytorch 1.4.0和Tensorflow 1.14.0环境测试通过，其他环境未测试，如果有需要，大家自己稍作修改modeling_gpt2.py应该就能运行
 
 模型太大已用7z格式压缩，并分成多个文件，下载前先留意一下是否支持或已安装7z解压软件
 模型下载百度云盘链接: https://pan.baidu.com/s/1Xe3MGA-ELiT1rsrx_HGaHg 提取码: k6b3
 
 
-### 安装：
+#### 安装：
 `
 git clone https://github.com/ghosthamlet/gpt2-ml-torch.git
+
 `
 
 如果之前没有安装Transformers 2.11.0，Pytorch 1.4.0和Tensorflow 1.14.0:
@@ -22,14 +23,14 @@ pip install -r requirements.txt
 百度云下载的模型放入models/mega-bert-tok
 
 
-### 如果需要自己转换，下载gpt2-ml的tensorflow模型，放入models/mega-bert-tok-tf目录，运行:
+#### 如果需要自己转换，下载gpt2-ml的tensorflow模型，放入models/mega-bert-tok-tf目录，运行:
 `
 python convert.py
 `   
 生成的pytorch模型在models/mega-bert-tok目录
 
 
-### 生成文字:   
+#### 生成文字:   
 `
 python generate.py --prompt 宇宙的意义是 --max_len 300 --n_seq 3
 `
@@ -54,7 +55,7 @@ python generate.py --prompt "刘梅和李丽是好朋友，她们正在讨论吃
 >  们 是 一 个 餐 饮 网 站 、 厨 师 培 训 、 淘 宝 运 营 团 队 。 ( 刘 梅 ) 如 果 您 是 想 了 解 食 品 行 业 的 信 息 ， 请 关 注。
 
 
-### 调用：
+#### 调用：
 
 `
 from generate import generate
