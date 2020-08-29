@@ -64,6 +64,7 @@ python generate.py --prompt "刘梅和李丽是好朋友，她们正在讨论吃
 
 `
 from generate import generate
+
 print(generate('中国人', 1, 100))
 `
 > [{'generated_text': '中国人 对 所 有 文 化 都 喜 欢 分 个 好 恶 高 下 ： 如 果 中 国 人 很 喜 欢 韩 流 ， 那 韩 娱 的 受 众 肯 定 不 会 特 别 喜 欢 这 种 类 型 的 韩 国 综 艺 。 中 国 人 很 喜 欢 美 剧 ， 美 剧 和 韩 剧 的 受 众 都 不 会 特 别 喜 欢 这 种 类 型 的 美 剧 。 中 国 人 看 日 本 电 影 对 美 妆 都 不 懂 ，'}]
