@@ -1,5 +1,5 @@
 
-## Pytorch version for https://github.com/imcaspar/gpt2-ml
+## Pytorch model for https://github.com/imcaspar/gpt2-ml
 
 gpt2-ml的pytorch版本预训练模型下载及转换和运用。
 
