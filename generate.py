@@ -5,7 +5,6 @@ import argparse
 from config import MODEL_PATH
 
 from transformers import BertTokenizer, pipeline
-# from transformers import GPT2LMHeadModel
 from modeling_gpt2 import GPT2LMHeadModel
 
 
