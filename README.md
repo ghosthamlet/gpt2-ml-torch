@@ -31,14 +31,14 @@ pip install -r requirements.txt
 #### 如果需要自己转换Pytorch模型，先下载https://github.com/imcaspar/gpt2-ml 的tensorflow模型，放入 models/mega-bert-tok-tf 目录， 确保models/mega-bert-tok-tf 目录包含文件model.ckpt-100000.index, model.ckpt-100000.meta, model.ckpt-100000.data-00000-of-00001，及mega.json，models/mega-bert-tok 目录包含vocab.txt，参考本代码库models/ 目录，运行:
 
 `
-python convert.py
+python gpt2_ml_torch/convert.py
 `   
 生成的pytorch模型在models/mega-bert-tok 目录
 
 
 #### 生成文字:   
 `
-python generate.py --prompt 宇宙的意义是 --max_len 300 --n_seq 3
+python gpt2_ml_torch/generate.py --prompt 宇宙的意义是 --max_len 300 --n_seq 3
 `
 
 > 0. 宇宙的意义是 无 序 。 因 而 一 切 不 确 定 的 存 在 都 是 无 限 的 。 所 以 我 们 才 有 无 所 不 知 的 物 理 物 理 。 这 便 是 宇 宙 的 意 义 。 没 有 什 么 是 绝 对 的 或 者 完 全 的 。 也 没 有 任 何 >东 西 是 绝 对 的 。 我 们 都 是 普 通 人 ， 我 们 也 都 存 在 其 他 的 知 识 ， 我 们 也 存 在 宇 宙 的 全 部 面 向 ， 所 有 东 西 都 可 以 被 称 为 是 宇 宙 的 一 部 分 ， 只 是 在 以 上 内 容 的 框 架 之 下 >， 你 很 难 找 到 某 一 种 或 某 几 种 以 上 的 定 义 。 也 许 ， 你 会 认 为 这 些 在 我 们 的 意 识 之 中 都 存 在 ， 但 这 才 是 我 们 的 生 活 的 意 义 。 而 每 个 人 的 意 识 之 中 ， 都 是 有 自 己 的 意 >识 ， 也 就 是 在 相 对 稳 定 的 意 识 之 中 。 而 生 活 在 相 对 稳 定 的 意 识 之 中 的 人 ， 就 像 一 个 生 活 在 恒 久 不 变 的 行 星 里 的 人 ， 是 无 法 真 的 发 觉 任 何 东 西 的 。 那 么 我 们 还 有 什 >么 呢 ？
@@ -47,7 +47,7 @@ python generate.py --prompt 宇宙的意义是 --max_len 300 --n_seq 3
 
     
 `
-python generate.py --prompt "【上联】悠悠柳岸落红霞 【下联】" --max_len 100 --n_seq 3
+python gpt2_ml_torch/generate.py --prompt "【上联】悠悠柳岸落红霞 【下联】" --max_len 100 --n_seq 3
 `
 
 > 0. 【上联】悠悠柳岸落红霞 【下联】 思 无 邪 松 烟 绿 水 悠 悠 ， 柳 岸 落 红 。 红 雨 过 后 ， 湖 光 山 色 依 然 碧 蓝 ， 美 丽 的 湖 光 山 色 中 ， 三 月 桃 花 漫 山 遍 野 开 放 ， 湖 上 人 们 静 静 诉 说 着 传 说 中 的 樱 花 雨 ， 湖 面 泛 起 水 ， 柳 堤 上 散 落 着 樱 花 树 。
@@ -55,7 +55,7 @@ python generate.py --prompt "【上联】悠悠柳岸落红霞 【下联】" --m
 > 2. 【上联】悠悠柳岸落红霞 【下联】 苍 山 淡 墨 写 婵 娟 【 横 批 】 悠 悠 的 柳 岸 ， 一 弯 秋 水 ， 淡 淡 的 绿 红 。 出 自 《 三 朝 北 盟 会 编 · 章 文 正 公 奇 幻 世 界 》 【 开 本 】 长 安 书 帖 【 序 >言 】 不 仅 我 们 生 活 在 一 个 多 元 化 的 时 代 ， 许 多 人 也 已 是 多 元 的。
 
 `
-python generate.py --prompt "刘梅和李丽是好朋友，她们正在讨论吃饭的问题。[刘梅] 中午去哪里吃？ [李丽] 吃麦当劳怎么样？ [刘梅]" --max_len 200 --n_seq 1
+python gpt2_ml_torch/generate.py --prompt "刘梅和李丽是好朋友，她们正在讨论吃饭的问题。[刘梅] 中午去哪里吃？ [李丽] 吃麦当劳怎么样？ [刘梅]" --max_len 200 --n_seq 1
 `
 > 0. 刘梅和李丽是好朋友，她们正在讨论吃饭的问题。[刘梅] 中午去哪里吃？ [李丽] 吃麦当劳怎么样？ [刘梅]  汉 堡 包 比 较 合 口 味 ， 还 是 炸 鸡 腿 堡 更 合 口 味 ？ [ 刘 梅 ] 在 哪 里 吃 ？ [ 李 丽 ] 在 中 国 >菜 网 订 餐 ， 可 以 享 受 汉 堡 和 炸 鸡 腿 堡 的 优 惠 ， 汉 堡 包 的 价 格 比 炸 鸡 腿 堡 要 低 ， 如 果 你 的 汉 堡 夹 着 炸 鸡 肉 的 话 ， 会 更 合 口 味 。 [ 刘 梅 ] 那 李 丽 是 做 什 么 的 ？ [ 李 丽 ] 我
 >  们 是 一 个 餐 饮 网 站 、 厨 师 培 训 、 淘 宝 运 营 团 队 。 ( 刘 梅 ) 如 果 您 是 想 了 解 食 品 行 业 的 信 息 ， 请 关 注。
@@ -63,9 +63,9 @@ python generate.py --prompt "刘梅和李丽是好朋友，她们正在讨论吃
 
 #### 调用：
 
-from config import MODEL_PATH
+from gpt2_ml_torch.config import MODEL_PATH
 
-from generate import generate
+from gpt2_ml_torch.generate import generate
 
 print(generate(prompt='中国人', model_path=MODEL_PATH, n_seq=1, max_len=100, no_gpu=False))
 

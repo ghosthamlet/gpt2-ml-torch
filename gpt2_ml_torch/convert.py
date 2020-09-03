@@ -2,9 +2,8 @@
 import shutil
 import argparse
 
-from config import MODEL_PATH, MODEL_TF, CONFIG_TF
-
-from modeling_gpt2 import convert_gpt2_checkpoint_to_pytorch
+from gpt2_ml_torch.config import MODEL_PATH, MODEL_TF, CONFIG_TF
+from gpt2_ml_torch.modeling_gpt2 import convert_gpt2_checkpoint_to_pytorch
 
 
 if __name__ == '__main__':
