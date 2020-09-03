@@ -2,10 +2,10 @@
 import sys
 import argparse
 
-from config import MODEL_PATH
+from .config import MODEL_PATH
 
 from transformers import BertTokenizer, pipeline
-from modeling_gpt2 import GPT2LMHeadModel
+from .modeling_gpt2 import GPT2LMHeadModel
 
 
 def generate(**kwargs):
