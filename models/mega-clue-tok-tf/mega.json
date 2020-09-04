@@ -1,0 +1,11 @@
+{
+  "vocab_size": 8021,
+  "n_embd": 1536,
+  "attn_pdrop": 0.1,
+  "embd_pdrop": 0.1,
+  "activation_function": "gelu",
+  "initializer_range": 0.014142135623731,
+  "n_positions": 1024,
+  "n_head": 24,
+  "n_layer": 48
+}
