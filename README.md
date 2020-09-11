@@ -7,7 +7,7 @@ gpt2-ml的pytorch版本预训练模型下载及转换和运用。
 
 #### 运行环境：
 
-在Ubuntu 16.10，Python 3.6.10，Transformers 2.11.0，Pytorch 1.4.0和Tensorflow 1.14.0环境测试通过，其他环境未测试，如果有需要，大家自己稍作修改modeling_gpt2.py应该就能运行。
+在Ubuntu 16.10，Python 3.6.10，Transformers 2.11.0，Pytorch 1.4.0和Tensorflow 1.14.0(转换时才需要)环境测试通过，其他环境未测试，如果有需要，大家自己稍作修改modeling_gpt2.py应该就能运行。
 
 #### Pytorch模型下载：
 模型太大已用7z格式压缩，并分成多个文件，下载前先留意一下是否支持或已安装7z解压软件，
@@ -22,6 +22,7 @@ git clone https://github.com/ghosthamlet/gpt2-ml-torch.git
 如果之前没有安装Transformers 2.11.0，Pytorch 1.4.0和Tensorflow 1.14.0:
 
 `
+# 如需转换功能请先修改requirements.txt启用Tensorflow
 pip install -r requirements.txt
 `
 
