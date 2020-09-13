@@ -17,7 +17,14 @@ gpt2-ml的pytorch版本预训练模型下载及转换和运用。
 
 代码库内有部分文件和百度云重复，下载后直接覆盖即可
 
+百度下载不会自动检查完整性，下载完请对比sha256值：
+mega-bert-tok/pytorch_model.bin                           f82940073239a24d17d3d9b549b0671773d9dccc06284fd872ee121831271131
+mega-clue-tok/pytorch_model.bin                           971f187fd72dc6bea547259daa92b2b5e73732825cc49b82c2d34bc20e39460d
+mega-bert-tok-tf/model.ckpt-100000.data-00000-of-00001    4a6e5124df8db7ac2bdd902e6191b807a6983a7f5d09fb10ce011f9a073b183e
+mega-clue-tok-tf/model.ckpt-220000.data-00000-of-00001    e698cc97a7f5f706f84f58bb469d614e51d3c0ce5f9ab9bf77e01e3fcb41d482
+
 百度云盘链接: https://pan.baidu.com/s/16tL4Bmoh6jPy0cOND0YyeA 提取码: 84dh 
+
 
 #### 安装：
 
