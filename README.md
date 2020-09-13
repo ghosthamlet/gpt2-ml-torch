@@ -25,14 +25,17 @@ gpt2-ml的pytorch版本预训练模型下载及转换和运用。
 git clone https://github.com/ghosthamlet/gpt2-ml-torch.git
 `
 
-如果之前没有安装Transformers 2.11.0，Pytorch 1.4.0和Tensorflow 1.14.0:
+需转换功能请先修改requirements.txt启用Tensorflow
+
+如之前没有安装Transformers 2.11.0，Pytorch 1.4.0和Tensorflow 1.14.0：
 
 `
-# 如需转换功能请先修改requirements.txt启用Tensorflow
 pip install -r requirements.txt
 `
 
 #### 如果需要自己转换Pytorch模型，先在上面的模型下载板块下载-tf后缀的文件夹，放入 models/ 目录，运行:
+
+默认是15G语料模型，可通过--model_path指定输出模型目录，--model_tf指定tensorflow模型目录和文件前缀，--config_tf指定tensorflow模型配置文件，此配置文件需从上面的下载板块下载，查看gpt2_ml_torch/config.py
 
 `
 python gpt2_ml_torch/convert.py
