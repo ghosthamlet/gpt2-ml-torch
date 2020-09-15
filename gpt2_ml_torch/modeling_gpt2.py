@@ -35,6 +35,8 @@ if _USE_GROVER:
     from transformers.file_utils import add_start_docstrings, add_start_docstrings_to_callable
     from transformers.modeling_utils import Conv1D, PreTrainedModel, SequenceSummary, prune_conv1d_layer
     from transformers import CONFIG_NAME, WEIGHTS_NAME, GPT2Config, GPT2Model
+
+    from transformers.modeling_outputs import BaseModelOutputWithPast, CausalLMOutputWithPast
 else:
     from .activations import ACT2FN
     from .configuration_gpt2 import GPT2Config
@@ -546,7 +548,7 @@ class GPT2Model(GPT2PreTrainedModel):
         head_mask=None,
         inputs_embeds=None,
         use_cache=True,
-        # return_dict=False,
+        return_dict=None,
     ):
         r"""
     Return:
@@ -581,6 +583,7 @@ class GPT2Model(GPT2PreTrainedModel):
         last_hidden_states = outputs[0]  # The last hidden-state is the first element of the output tuple
 
         """
+        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
         if input_ids is not None and inputs_embeds is not None:
             raise ValueError("You cannot specify both input_ids and inputs_embeds at the same time")
@@ -678,17 +681,27 @@ class GPT2Model(GPT2PreTrainedModel):
         if self.output_hidden_states:
             all_hidden_states = all_hidden_states + (hidden_states,)
 
-        outputs = (hidden_states,)
-        if use_cache is True:
-            outputs = outputs + (presents,)
-        if self.output_hidden_states:
-            outputs = outputs + (all_hidden_states,)
-        if self.output_attentions:
-            # let the number of heads free (-1) so we can extract attention even after head pruning
-            attention_output_shape = input_shape[:-1] + (-1,) + all_attentions[0].shape[-2:]
-            all_attentions = tuple(t.view(*attention_output_shape) for t in all_attentions)
-            outputs = outputs + (all_attentions,)
-        return outputs  # last hidden state, (presents), (all hidden_states), (attentions)
+        # outputs = (hidden_states,)
+        # if use_cache is True:
+        #    outputs = outputs + (presents,)
+        # if self.output_hidden_states:
+        #    outputs = outputs + (all_hidden_states,)
+       #if self.output_attentions:
+       #    # let the number of heads free (-1) so we can extract attention even after head pruning
+       #    attention_output_shape = input_shape[:-1] + (-1,) + all_attentions[0].shape[-2:]
+       #    all_attentions = tuple(t.view(*attention_output_shape) for t in all_attentions)
+       #    outputs = outputs + (all_attentions,)
+        # return outputs  # last hidden state, (presents), (all hidden_states), (attentions)
+
+        if not return_dict:
+            return tuple(v for v in [hidden_states, presents, all_hidden_states, all_attentions] if v is not None)
+
+        return BaseModelOutputWithPast(
+            last_hidden_state=hidden_states,
+            past_key_values=presents,
+            hidden_states=all_hidden_states,
+            attentions=all_attentions,
+        )
 
 
 @add_start_docstrings(
@@ -726,7 +739,7 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
         inputs_embeds=None,
         labels=None,
         use_cache=True,
-        # return_dict=False,
+        return_dict=None,
     ):
         r"""
         labels (:obj:`torch.LongTensor` of shape :obj:`(batch_size, sequence_length)`, `optional`, defaults to :obj:`None`):
@@ -770,6 +783,8 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
         loss, logits = outputs[:2]
 
         """
+        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+
         transformer_outputs = self.transformer(
             input_ids,
             past=past,
@@ -779,12 +794,14 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
             head_mask=head_mask,
             inputs_embeds=inputs_embeds,
             use_cache=use_cache,
+            return_dict=return_dict,
         )
         hidden_states = transformer_outputs[0]
 
         lm_logits = self.lm_head(hidden_states)
 
-        outputs = (lm_logits,) + transformer_outputs[1:]
+        loss = None
+        # outputs = (lm_logits,) + transformer_outputs[1:]
         if labels is not None:
             # Shift so that tokens < n predict n
             shift_logits = lm_logits[..., :-1, :].contiguous()
@@ -792,9 +809,21 @@ class GPT2LMHeadModel(GPT2PreTrainedModel):
             # Flatten the tokens
             loss_fct = CrossEntropyLoss()
             loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
-            outputs = (loss,) + outputs
+            # outputs = (loss,) + outputs
 
-        return outputs  # (loss), lm_logits, presents, (all hidden_states), (attentions)
+        # return outputs  # (loss), lm_logits, presents, (all hidden_states), (attentions)
+
+        if not return_dict:
+            output = (lm_logits,) + transformer_outputs[1:]
+            return ((loss,) + output) if loss is not None else output
+
+        return CausalLMOutputWithPast(
+            loss=loss,
+            logits=lm_logits,
+            past_key_values=transformer_outputs.past_key_values,
+            hidden_states=transformer_outputs.hidden_states,
+            attentions=transformer_outputs.attentions,
+        )
 
 
 @add_start_docstrings(

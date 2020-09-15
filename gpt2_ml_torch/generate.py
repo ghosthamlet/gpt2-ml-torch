@@ -31,7 +31,7 @@ def build_output(model, tokenizer,
         num_return_sequences=n_seq, 
         max_length=max_len, 
         do_sample=True,
-        # return_dict=False, 
+        return_dict=False, 
         **kwargs
     )
 
