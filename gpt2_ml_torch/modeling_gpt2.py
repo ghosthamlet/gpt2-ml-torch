@@ -22,6 +22,9 @@ Adapted from https://github.com/huggingface/transformers/blob/v2.11.0/src/transf
 import logging
 import os
 
+from dataclasses import dataclass
+from typing import List, Optional, Tuple
+
 import torch
 import torch.nn as nn
 from torch.nn import CrossEntropyLoss
@@ -30,6 +33,7 @@ from torch.nn import CrossEntropyLoss
 _USE_GROVER = True
 
 if _USE_GROVER:
+
     from transformers.activations import ACT2FN
     from transformers.configuration_gpt2 import GPT2Config
     from transformers.file_utils import add_start_docstrings, add_start_docstrings_to_callable
@@ -37,11 +41,15 @@ if _USE_GROVER:
     from transformers import CONFIG_NAME, WEIGHTS_NAME, GPT2Config, GPT2Model
 
     from transformers.modeling_outputs import BaseModelOutputWithPast, CausalLMOutputWithPast
+    from transformers.file_utils import ModelOutput
 else:
     from .activations import ACT2FN
     from .configuration_gpt2 import GPT2Config
     from .file_utils import add_start_docstrings, add_start_docstrings_to_callable
     from .modeling_utils import Conv1D, PreTrainedModel, SequenceSummary, prune_conv1d_layer
+
+    from .modeling_outputs import BaseModelOutputWithPast, CausalLMOutputWithPast
+    from .file_utils import ModelOutput
 
 
 logger = logging.getLogger(__name__)
@@ -440,6 +448,48 @@ class GPT2PreTrainedModel(PreTrainedModel):
         elif isinstance(module, nn.LayerNorm):
             module.bias.data.zero_()
             module.weight.data.fill_(1.0)
+
+ 
+@dataclass
+class GPT2DoubleHeadsModelOutput(ModelOutput):
+    """
+    Base class for outputs of models predicting if two sentences are consecutive or not.
+
+    Args:
+        loss (:obj:`torch.FloatTensor` of shape :obj:`(1,)`, `optional`, returned when ``labels`` is provided):
+            Language modeling loss.
+        mc_loss (:obj:`torch.FloatTensor` of shape :obj:`(1,)`, `optional`, returned when :obj:`mc_labels` is provided):
+            Multiple choice classification loss.
+        logits (:obj:`torch.FloatTensor` of shape :obj:`(batch_size, num_choices, sequence_length, config.vocab_size)`):
+            Prediction scores of the language modeling head (scores for each vocabulary token before SoftMax).
+        mc_logits (:obj:`torch.FloatTensor` of shape :obj:`(batch_size, num_choices)`):
+            Prediction scores of the multiple choice classification head (scores for each choice before SoftMax).
+        past_key_values (:obj:`List[torch.FloatTensor]`, `optional`, returned when ``use_cache=True`` is passed or when ``config.use_cache=True``):
+            List of :obj:`torch.FloatTensor` of length :obj:`config.n_layers`,  with each tensor of shape
+            :obj:`(2, batch_size, num_heads, sequence_length, embed_size_per_head)`).
+
+            Contains pre-computed hidden-states (key and values in the attention blocks) that can be used (see
+            ``past_key_values`` input) to speed up sequential decoding.
+        hidden_states (:obj:`tuple(torch.FloatTensor)`, `optional`, returned when ``output_hidden_states=True`` is passed or when ``config.output_hidden_states=True``):
+            Tuple of :obj:`torch.FloatTensor` (one for the output of the embeddings + one for the output of each layer)
+            of shape :obj:`(batch_size, sequence_length, hidden_size)`.
+
+            Hidden-states of the model at the output of each layer plus the initial embedding outputs.
+        attentions (:obj:`tuple(torch.FloatTensor)`, `optional`, returned when ``output_attentions=True`` is passed or when ``config.output_attentions=True``):
+            Tuple of :obj:`torch.FloatTensor` (one for each layer) of shape
+            :obj:`(batch_size, num_heads, sequence_length, sequence_length)`.
+
+            Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
+            heads.
+    """
+
+    loss: Optional[torch.FloatTensor] = None
+    mc_loss: Optional[torch.FloatTensor] = None
+    logits: torch.FloatTensor = None
+    mc_logits: torch.FloatTensor = None
+    past_key_values: Optional[List[torch.FloatTensor]] = None
+    hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+    attentions: Optional[Tuple[torch.FloatTensor]] = None
 
 
 GPT2_START_DOCSTRING = r"""
@@ -861,6 +911,7 @@ class GPT2DoubleHeadsModel(GPT2PreTrainedModel):
         lm_labels=None,
         mc_labels=None,
         use_cache=True,
+        return_dict=None,
     ):
         r"""
         mc_token_ids (:obj:`torch.LongTensor` of shape :obj:`(batch_size, num_choices)`, `optional`, default to index of the last token of the input)
@@ -926,6 +977,8 @@ class GPT2DoubleHeadsModel(GPT2PreTrainedModel):
         lm_prediction_scores, mc_prediction_scores = outputs[:2]
 
         """
+        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+
         transformer_outputs = self.transformer(
             input_ids,
             past=past,
@@ -942,16 +995,31 @@ class GPT2DoubleHeadsModel(GPT2PreTrainedModel):
         lm_logits = self.lm_head(hidden_states)
         mc_logits = self.multiple_choice_head(hidden_states, mc_token_ids).squeeze(-1)
 
-        outputs = (lm_logits, mc_logits) + transformer_outputs[1:]
+        mc_loss = None
         if mc_labels is not None:
             loss_fct = CrossEntropyLoss()
-            loss = loss_fct(mc_logits.view(-1, mc_logits.size(-1)), mc_labels.view(-1))
-            outputs = (loss,) + outputs
+            mc_loss = loss_fct(mc_logits.view(-1, mc_logits.size(-1)), mc_labels.view(-1))
+        lm_loss = None
         if lm_labels is not None:
             shift_logits = lm_logits[..., :-1, :].contiguous()
             shift_labels = lm_labels[..., 1:].contiguous()
             loss_fct = CrossEntropyLoss()
-            loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
-            outputs = (loss,) + outputs
+            lm_loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
 
-        return outputs  # (lm loss), (mc loss), lm logits, mc logits, presents, (all hidden_states), (attentions)
+        # return outputs  # (lm loss), (mc loss), lm logits, mc logits, presents, (all hidden_states), (attentions)
+
+        if not return_dict:
+            output = (lm_logits, mc_logits) + transformer_outputs[1:]
+            if mc_loss is not None:
+                output = (mc_loss,) + output
+            return ((lm_loss,) + output) if lm_loss is not None else output
+
+        return GPT2DoubleHeadsModelOutput(
+            loss=lm_loss,
+            mc_loss=mc_loss,
+            logits=lm_logits,
+            mc_logits=mc_logits,
+            past_key_values=transformer_outputs.past_key_values,
+            hidden_states=transformer_outputs.hidden_states,
+            attentions=transformer_outputs.attentions,
+        ) 
