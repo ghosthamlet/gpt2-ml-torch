@@ -15,7 +15,7 @@ gpt2-ml的pytorch版本预训练模型下载及转换和运用。
 
 15G语料模型的对话生成比30G的质量更高，30G语料模型的文章生成（包括诗词）质量更佳
 
-代码库内有部分文件和百度云重复，下载后直接覆盖即可
+下载后放入 models/ 目录，其中有部分文件和百度云重复，直接覆盖即可
 
 百度下载不会自动检查完整性，下载完请对比sha256值：
 
@@ -52,7 +52,7 @@ git clone https://github.com/ghosthamlet/gpt2-ml-torch.git
 pip install -r requirements.txt
 `
 
-#### 如需要自己转换Pytorch模型，先在上面的模型下载板块下载-tf后缀的文件夹，放入 models/ 目录，运行:
+#### 如需要自己转换Pytorch模型，先在上面的模型下载板块下载-tf后缀的文件夹:
 
 默认是15G语料模型，可通过--model_path指定输出模型目录，--model_tf指定tensorflow模型目录和文件前缀，--config_tf指定tensorflow模型配置文件，此配置文件需从上面的下载板块下载，查看gpt2_ml_torch/config.py
 
