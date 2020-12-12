@@ -29,6 +29,8 @@ from gpt2_ml_torch.modeling_gpt2 import GPT2LMHeadModel
 
 
 """
+必须先安装 deepspeed==0.3.7
+
 
 测试代码：
 deepspeed --num_nodes 1 --num_gpus 1 finetune.py --log_name testtest --seq_len 300 --batch_size 1 --lr 5e-5 --device_ids 0 --train_data datasets/test_train.txt --valid_data datasets/test_val.txt --model_config configs/small.json --vocab models/mega-clue-tok/vocab.txt
