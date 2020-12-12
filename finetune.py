@@ -31,6 +31,7 @@ from gpt2_ml_torch.modeling_gpt2 import GPT2LMHeadModel
 """
 必须先安装 deepspeed==0.3.7
 
+数据格式查看get_args函数内train_data命令行参数的注释
 
 测试代码：
 deepspeed --num_nodes 1 --num_gpus 1 finetune.py --log_name testtest --seq_len 300 --batch_size 1 --lr 5e-5 --device_ids 0 --train_data datasets/test_train.txt --valid_data datasets/test_val.txt --model_config configs/small.json --vocab models/mega-clue-tok/vocab.txt
@@ -42,6 +43,59 @@ deepspeed --num_nodes 1 --num_gpus 1 finetune.py --log_name testtest --seq_len 3
 微调第二阶段：
 deepspeed --num_nodes 1 --num_gpus 1 finetune.py --log_name testtest --seq_len 300 --batch_size 1 --lr 5e-8 --device_ids 0 --train_data datasets/test_train.txt --valid_data datasets/test_val.txt --pretrained_path models/mega-clue-tok
 """
+
+
+def get_args():
+    parser = argparse.ArgumentParser(description='GPT2')
+    parser.add_argument("--lr", type=float, default=5e-5, metavar="N", help="学习率")
+    parser.add_argument('--warmup_steps', default=200, type=int, required=False, help="")
+    parser.add_argument("--gradient_accumulation_steps", type=int, default=1, metavar="N", help="")
+
+    parser.add_argument('--model_config', type=str, default='configs/small.json', help="测试用的模型配置文件")
+    parser.add_argument('--vocab', type=str, default='models/mega-clue-tok/vocab.txt', help="测试用的字典")
+    parser.add_argument('--pretrained_path', type=str, default='', help="预训练模型目录，默认为空时，用model_config和vocab参数初始化模型从头训练，可用于快速测试代码")
+    parser.add_argument('--train_data', type=str, required=True, help="训练数据文件，普通的以\n分行的txt文件，必须是utf8格式")
+    parser.add_argument('--valid_data', type=str, required=True, help="验证数据文件，普通的以\n分行的txt文件，必须是utf8格式")
+
+    parser.add_argument('--freeze_body', action='store_true', help="是否禁止微调模型主体，只微调最后一层。微调可分为两个阶段，第一阶段启用这个参数")
+    parser.add_argument("--max_data_len", type=int, metavar="N", help="最大训练多少份数据，默认全部，输入较小的数字以快速测试代码")
+    parser.add_argument('--log_name', type=str, required=True, help="日志名字，字母或数字，不包含特殊字符或中文")
+
+    parser.add_argument('--no_cache', action='store_true', help="是否禁止缓存数据集的预处理操作")
+
+    parser.add_argument('--device_ids', default='0', type=str, required=False, help="可见的GPU设备，如：0,1,2")
+    parser.add_argument('--no_cuda', action='store_true', help="禁止GPU")
+
+    parser.add_argument("--seq_len", type=int, default=300, metavar="N", help="输入长度")
+    parser.add_argument("--epochs", type=int, default=10, metavar="N", help="训练轮次")
+    parser.add_argument(
+            "--batch_size", type=int, default=1, metavar="N", help="批次大小"
+    )
+    parser.add_argument('--seed', type=int, default=62, help='')
+
+    parser.add_argument("--local_rank", type=int, default=0, metavar="N", help="")
+ 
+
+    parser = deepspeed.add_config_arguments(parser)
+    args = parser.parse_args()
+
+    os.environ.setdefault('MASTER_PORT', '3600')
+    os.environ.setdefault('MASTER_ADDR', '127.0.0.1') 
+    # deepspeed launcher will setup these, so default values no effects
+    os.environ.setdefault('WORLD_SIZE', str(len(args.device_ids.split(','))))
+    os.environ.setdefault('RANK', '0')
+    os.environ.setdefault('CUDA_VISIBLE_DEVICES', args.device_ids)
+
+    args.deepspeed = True
+    args.cpu_optimizer = True
+
+    args.rank = int(os.getenv('RANK'))
+    args.world_size = int(os.getenv("WORLD_SIZE"))
+
+    args.cuda = torch.cuda.is_available() and not args.no_cuda
+    args.device = 'cuda' if args.cuda else 'cpu'
+
+    return args
 
 
 def set_random_seed(args):
@@ -412,59 +466,6 @@ def save_model(args, logger, model, epoch, batch):
         shutil.copy(vocab_file, path)
 
     torch.save(args, path + '/model_training_args.bin')
-
-
-def get_args():
-    parser = argparse.ArgumentParser(description='GPT2')
-    parser.add_argument("--lr", type=float, default=5e-5, metavar="N", help="学习率")
-    parser.add_argument('--warmup_steps', default=200, type=int, required=False, help="")
-    parser.add_argument("--gradient_accumulation_steps", type=int, default=1, metavar="N", help="")
-
-    parser.add_argument('--model_config', type=str, default='configs/small.json', help="测试用的模型配置文件")
-    parser.add_argument('--vocab', type=str, default='models/mega-clue-tok/vocab.txt', help="测试用的字典")
-    parser.add_argument('--pretrained_path', type=str, default='', help="预训练模型目录，默认为空时，用model_config和vocab参数初始化模型从头训练，可用于快速测试代码")
-    parser.add_argument('--train_data', type=str, required=True, help="训练数据文件，普通的以\n分行的txt文件，必须是utf8格式")
-    parser.add_argument('--valid_data', type=str, required=True, help="验证数据文件，普通的以\n分行的txt文件，必须是utf8格式")
-
-    parser.add_argument('--freeze_body', action='store_true', help="是否禁止微调模型主体，只微调最后一层。微调可分为两个阶段，第一阶段启用这个参数")
-    parser.add_argument("--max_data_len", type=int, metavar="N", help="最大训练多少份数据，默认全部，输入较小的数字以快速测试代码")
-    parser.add_argument('--log_name', type=str, required=True, help="日志名字，字母或数字，不包含特殊字符或中文")
-
-    parser.add_argument('--no_cache', action='store_true', help="是否禁止缓存数据集的预处理操作")
-
-    parser.add_argument('--device_ids', default='0', type=str, required=False, help="可见的GPU设备，如：0,1,2")
-    parser.add_argument('--no_cuda', action='store_true', help="禁止GPU")
-
-    parser.add_argument("--seq_len", type=int, default=300, metavar="N", help="输入长度")
-    parser.add_argument("--epochs", type=int, default=10, metavar="N", help="训练轮次")
-    parser.add_argument(
-            "--batch_size", type=int, default=1, metavar="N", help="批次大小"
-    )
-    parser.add_argument('--seed', type=int, default=62, help='')
-
-    parser.add_argument("--local_rank", type=int, default=0, metavar="N", help="")
- 
-
-    parser = deepspeed.add_config_arguments(parser)
-    args = parser.parse_args()
-
-    os.environ.setdefault('MASTER_PORT', '3600')
-    os.environ.setdefault('MASTER_ADDR', '127.0.0.1') 
-    # deepspeed launcher will setup these, so default values no effects
-    os.environ.setdefault('WORLD_SIZE', str(len(args.device_ids.split(','))))
-    os.environ.setdefault('RANK', '0')
-    os.environ.setdefault('CUDA_VISIBLE_DEVICES', args.device_ids)
-
-    args.deepspeed = True
-    args.cpu_optimizer = True
-
-    args.rank = int(os.getenv('RANK'))
-    args.world_size = int(os.getenv("WORLD_SIZE"))
-
-    args.cuda = torch.cuda.is_available() and not args.no_cuda
-    args.device = 'cuda' if args.cuda else 'cpu'
-
-    return args
 
 
 if __name__ == "__main__":
