@@ -69,7 +69,7 @@ def get_args():
     parser.add_argument("--seq_len", type=int, default=300, metavar="N", help="输入长度")
     parser.add_argument("--epochs", type=int, default=10, metavar="N", help="训练轮次")
     parser.add_argument(
-            "--batch_size", type=int, default=1, metavar="N", help="批次大小"
+            "--batch_size", type=int, default=1, metavar="N", help="单个GPU上的批次大小"
     )
     parser.add_argument('--seed', type=int, default=62, help='')
 
