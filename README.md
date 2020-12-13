@@ -1,6 +1,8 @@
 
 ## Pytorch model for https://github.com/imcaspar/gpt2-ml
 
+### 2020.12.13 更新微调代码，使用方法见代码内文档：https://github.com/ghosthamlet/gpt2-ml-torch/blob/master/finetune_lm.py
+
 gpt2-ml的pytorch版本预训练模型下载及转换和运用。
 
 #### 运行环境：
