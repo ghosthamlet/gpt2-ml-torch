@@ -333,7 +333,8 @@ def train_epoch(args, logger, model, data_loader, optimizer,
     for batch_idx, (input_t, target_t) in enumerate(data_loader):
         input_t = input_t.cuda(args.local_rank, non_blocking=True)
         target_t = target_t.cuda(args.local_rank, non_blocking=True)
-
+        
+        loss = torch.tensor(0)
         try:
             loss, *_ = model(input_t, labels=target_t)
             loss_acc += loss.item()
