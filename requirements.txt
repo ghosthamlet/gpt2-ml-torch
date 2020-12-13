@@ -6,3 +6,6 @@ transformers==3.1.0
 # Just for convert
 # tensorflow==1.14.0
 # tensorflow-gpu==1.14.0 is aslo ok
+
+# for finetune
+# deepspeed==0.3.7
