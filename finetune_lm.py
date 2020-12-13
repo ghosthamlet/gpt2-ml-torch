@@ -31,21 +31,23 @@ from gpt2_ml_torch.modeling_gpt2 import GPT2LMHeadModel
 """
 必须先安装 deepspeed==0.3.7
 
-数据格式查看get_args函数内train_data命令行参数的注释
-
+数据格式查看get_configs函数内train_data命令行参数的注释
+    
+    
 测试代码：
-deepspeed --num_nodes 1 --num_gpus 1 finetune.py --log_name testtest --seq_len 300 --batch_size 1 --lr 5e-5 --device_ids 0 --train_data datasets/test_train.txt --valid_data datasets/test_val.txt --model_config configs/small.json --vocab models/mega-clue-tok/vocab.txt
-
-
+deepspeed --num_nodes 1 --num_gpus 1 finetune.py --log_name testtest --seq_len 300 --epochs 2 --batch_size 1 --lr 5e-5 --device_ids 0 --train_data datasets/test_train.txt --valid_data datasets/test_val.txt --model_config configs/small.json --vocab models/mega-clue-tok/vocab.txt --max_data_len 1000 --no_cache
+    
+    
 微调第一阶段：
-deepspeed --num_nodes 1 --num_gpus 1 finetune.py --log_name testtest --seq_len 300 --batch_size 1 --lr 5e-8 --device_ids 0 --train_data datasets/test_train.txt --valid_data datasets/test_val.txt --pretrained_path models/mega-clue-tok --freeze_body
+deepspeed --num_nodes 1 --num_gpus 1 finetune.py --log_name finetune_large_stage1 --seq_len 300 --epochs 3 --batch_size 1 --lr 5e-8 --device_ids 0 --train_data datasets/test_train.txt --valid_data datasets/test_val.txt --pretrained_path models/mega-clue-tok --freeze_body
 
 微调第二阶段：
-deepspeed --num_nodes 1 --num_gpus 1 finetune.py --log_name testtest --seq_len 300 --batch_size 1 --lr 5e-8 --device_ids 0 --train_data datasets/test_train.txt --valid_data datasets/test_val.txt --pretrained_path models/mega-clue-tok
+deepspeed --num_nodes 1 --num_gpus 1 finetune.py --log_name finetune_large_stage2 --seq_len 300 --epochs 10 --batch_size 1 --lr 5e-8 --device_ids 0 --train_data datasets/test_train.txt --valid_data datasets/test_val.txt --pretrained_path models/finetune_large_stage1_epoch_3
+
 """
 
 
-def get_args():
+def get_configs():
     parser = argparse.ArgumentParser(description='GPT2')
     parser.add_argument("--lr", type=float, default=5e-5, metavar="N", help="学习率")
     parser.add_argument('--warmup_steps', default=200, type=int, required=False, help="")
@@ -95,7 +97,36 @@ def get_args():
     args.cuda = torch.cuda.is_available() and not args.no_cuda
     args.device = 'cuda' if args.cuda else 'cpu'
 
-    return args
+    ds_config = {
+        'zero_optimization': {
+            'stage': 2,
+            'cpu_offload': True,
+            'contiguous_gradients': True,
+            # https://github.com/microsoft/DeepSpeed/issues/467
+            'overlap_comm': False,
+            # 'reduce_bucket_size': 50000000
+            # too small will failed with large dimension size
+            'reduce_bucket_size': 3000000,
+            'allgather_bucket_size': 3000000
+            },
+        'train_batch_size': args.batch_size * args.world_size,
+        "gradient_accumulation_steps": args.gradient_accumulation_steps,
+        'fp16': {
+            'enabled': True,
+            "loss_scale": 0,
+            "loss_scale_window": 1000,
+            "hysteresis": 2,
+            "min_loss_scale": 1,
+            },
+          "activation_checkpointing": {
+            "partition_activations": True,
+            "contiguous_memory_optimization": True,
+            "cpu_checkpointing": True
+          }, 
+         "wall_clock_breakdown": False,
+    }
+
+    return args, ds_config
 
 
 def set_random_seed(args):
@@ -437,7 +468,11 @@ def dist_cleanup():
 
 
 def save_model(args, logger, model, epoch, batch):
-    path = 'models/{}_epoch_{}'.format(args.log_name, epoch+1)
+    parent = 'models'
+    if not os.path.exists(parent):
+        os.mkdir(parent)
+
+    path = '{}/{}_epoch_{}'.format(parent, args.log_name, epoch+1)
     if not os.path.exists(path):
         os.mkdir(path)
     if batch is None:
@@ -469,36 +504,7 @@ def save_model(args, logger, model, epoch, batch):
 
 
 if __name__ == "__main__":
-    args = get_args()
-
-    ds_config = {
-        'zero_optimization': {
-            'stage': 2,
-            'cpu_offload': True,
-            'contiguous_gradients': True,
-            # https://github.com/microsoft/DeepSpeed/issues/467
-            'overlap_comm': False,
-            # 'reduce_bucket_size': 50000000
-            # too small will failed with large dimension size
-            'reduce_bucket_size': 3000000,
-            'allgather_bucket_size': 3000000
-            },
-        'train_batch_size': args.batch_size * args.world_size,
-        "gradient_accumulation_steps": args.gradient_accumulation_steps,
-        'fp16': {
-            'enabled': True,
-            "loss_scale": 0,
-            "loss_scale_window": 1000,
-            "hysteresis": 2,
-            "min_loss_scale": 1,
-            },
-          "activation_checkpointing": {
-            "partition_activations": True,
-            "contiguous_memory_optimization": True,
-            "cpu_checkpointing": True
-          }, 
-         "wall_clock_breakdown": False,
-    }
+    args, ds_config = get_configs()
 
     log_path = 'logs'
     if not os.path.exists(log_path):
