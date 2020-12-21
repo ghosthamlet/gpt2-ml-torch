@@ -243,6 +243,8 @@ def build_model(args):
         config = GPT2Config.from_json_file(args.model_config)
         model = GPT2LMHeadModel(config)
         tokenizer = BertTokenizerFast(args.vocab)
+        # XXX: must add this, or can't tokenize special token in string to single char
+        tokenizer.sanitize_special_tokens()
         info = None
     else:
         config = GPT2Config.from_pretrained(args.pretrained_path)
