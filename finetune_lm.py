@@ -181,6 +181,11 @@ class LMDataset(torch_data.Dataset):
             os.mkdir(cache_path)
 
         cache_file = '%s/%s-%s.json' % (cache_path, args.log_name, mode)
+        
+        dist.barrier() 
+        if args.local_rank != 0:
+              dist.barrier() 
+
         if cache and os.path.exists(cache_file):
             with open(cache_file) as f:
                 self.features = json.loads(f.read())
@@ -191,6 +196,9 @@ class LMDataset(torch_data.Dataset):
             if cache:
                 with open(cache_file, 'w') as f:
                     f.write(json.dumps(self.features))
+                
+        if args.local_rank == 0:
+            dist.barrier()
 
     def _get_exmples(self):
         path = self.data_path
