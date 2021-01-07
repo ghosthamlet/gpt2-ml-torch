@@ -7,7 +7,7 @@ gpt2-ml的pytorch版本预训练模型下载及转换和运用。
 
 #### 运行环境：
 
-在Ubuntu 16.10，Python 3.6.10，Transformers 3.1.0，Pytorch 1.4.0和Tensorflow 1.14.0(转换时才需要)环境测试通过，其他环境未测试，如有需要，大家自己稍作修改modeling_gpt2.py应该就能运行。
+在Ubuntu 16.10，Python 3.6.10，Transformers 3.1.0，Pytorch 1.4.0(cuda 10.2)和Tensorflow 1.14.0(转换时才需要)环境测试通过，其他环境未测试，如有需要，大家自己稍作修改modeling_gpt2.py应该就能运行。
 
 #### 模型下载：
 
