@@ -38,14 +38,14 @@ datasets/目录下有示例数据文件
     
     
 测试代码：
-deepspeed --num_nodes 1 --num_gpus 1 finetune.py --log_name testtest --seq_len 300 --epochs 2 --batch_size 1 --lr 5e-5 --device_ids 0 --train_data datasets/test_train.txt --valid_data datasets/test_val.txt --model_config configs/small.json --vocab models/mega-clue-tok/vocab.txt --max_data_len 1000 --no_cache
+deepspeed --num_nodes 1 --num_gpus 1 finetune_lm.py --log_name testtest --seq_len 300 --epochs 2 --batch_size 1 --lr 5e-5 --device_ids 0 --train_data datasets/test_train.txt --valid_data datasets/test_val.txt --model_config configs/small.json --vocab models/mega-clue-tok/vocab.txt --max_data_len 1000 --no_cache
     
     
 微调第一阶段：
-deepspeed --num_nodes 1 --num_gpus 1 finetune.py --log_name finetune_large_stage1 --seq_len 300 --epochs 3 --batch_size 1 --lr 5e-8 --device_ids 0 --train_data datasets/test_train.txt --valid_data datasets/test_val.txt --pretrained_path models/mega-clue-tok --freeze_body
+deepspeed --num_nodes 1 --num_gpus 1 finetune_lm.py --log_name finetune_large_stage1 --seq_len 300 --epochs 3 --batch_size 1 --lr 5e-8 --device_ids 0 --train_data datasets/test_train.txt --valid_data datasets/test_val.txt --pretrained_path models/mega-clue-tok --freeze_body
 
 微调第二阶段：
-deepspeed --num_nodes 1 --num_gpus 1 finetune.py --log_name finetune_large_stage2 --seq_len 300 --epochs 10 --batch_size 1 --lr 5e-8 --device_ids 0 --train_data datasets/test_train.txt --valid_data datasets/test_val.txt --pretrained_path models/finetune_large_stage1_epoch_3
+deepspeed --num_nodes 1 --num_gpus 1 finetune_lm.py --log_name finetune_large_stage2 --seq_len 300 --epochs 10 --batch_size 1 --lr 5e-8 --device_ids 0 --train_data datasets/test_train.txt --valid_data datasets/test_val.txt --pretrained_path models/finetune_large_stage1_epoch_3
 
 """
 
@@ -268,6 +268,9 @@ def get_model_tokenizer_optimizer(args):
     model.half()
     model.cuda(args.local_rank)
 
+    # XXX: all change to model parameters 
+    #      (e.g. add_special_tokens) 
+    #      must happen before DDP !!
     model = DDP(model, device_ids=[args.local_rank], 
             output_device=args.local_rank)
 
