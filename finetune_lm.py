@@ -377,7 +377,7 @@ def train_epoch(args, logger, model, data_loader, optimizer,
                     )
                 )
 
-            if batch_idx > 0 and batch_idx % 2000 == 0:
+            if batch_idx > 0 and batch_idx % 60000 == 0:
                 save_model(args, logger, model, epoch, batch_idx)
 
     return loss_acc / batch_len
