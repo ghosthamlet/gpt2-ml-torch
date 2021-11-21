@@ -289,16 +289,40 @@ def get_model_tokenizer_optimizer(args):
                     # and autodiff will calc grads two times on params in lm_head
                     # model.module.transformer.wte.parameters(),
                     model_obj.transformer.wpe.parameters(),
-                    model_obj.transformer.emb_norm.parameters(),
                     model_obj.lm_head.parameters()
                 ]]
+        params.append(
+                  dict(params=model_obj.transformer.emb_norm.parameters(),
+                       weight_decay=0.0))
     else:
         model.requires_grad_(True)
-        params = model_obj.parameters()
+        params = get_params_for_weight_decay_optimization(model_obj)
 
     optimizer = DeepSpeedCPUAdam(params, lr=args.lr, weight_decay=0.01)
 
     return model, tokenizer, optimizer
+
+
+def get_params_for_weight_decay_optimization(module):
+    """Divide params into with-weight-decay and without-weight-decay groups.
+    Layernorms and baises will have no weight decay but the rest will.
+    """
+    weight_decay_params = {'params': []}
+    no_weight_decay_params = {'params': [], 'weight_decay': 0.0}
+    for module_ in module.modules():
+        if isinstance(module_, LayerNorm):
+            no_weight_decay_params['params'].extend(
+                [p for p in list(module_._parameters.values())
+                 if p is not None])
+        else:
+            weight_decay_params['params'].extend(
+                [p for n, p in list(module_._parameters.items())
+                 if p is not None and n != 'bias'])
+            no_weight_decay_params['params'].extend(
+                [p for n, p in list(module_._parameters.items())
+                 if p is not None and n == 'bias'])
+
+    return weight_decay_params, no_weight_decay_params
 
 
 def get_data_loader(args, tokenizer):
